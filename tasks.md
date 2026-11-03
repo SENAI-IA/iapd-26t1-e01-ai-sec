@@ -2,7 +2,7 @@
 
 Ordem sugerida. Cada task é pequena o bastante para o agente executar e você conferir com `pytest -q`.
 
-- [ ] T1. Criar a estrutura do projeto, `README.md` e o steering da equipe (stack, centavos, sqlite com `?`, UTC, compare_digest, PAN nunca em log). Critério: `pytest -q` roda (zero testes ainda).
+- [x] T1. Criar a estrutura do projeto, `README.md` e o steering da equipe (stack, centavos, sqlite com `?`, UTC, compare_digest, PAN nunca em log). Critério: `pytest -q` roda (zero testes ainda).
 - [ ] T2. `money.py` + testes R01 e R02.
 - [ ] T3. `db.py` com schema e helper de consulta parametrizada + `payments.py` + teste R03 (e um teste que tenta injeção para R09).
 - [ ] T4. `refunds.py` + testes R04 e R05.
