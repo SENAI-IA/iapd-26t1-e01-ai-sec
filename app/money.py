@@ -12,6 +12,14 @@ from app.errors import ValidationError
 def parse_amount_cents(value):
     """Valida e retorna um valor monetário em centavos.
 
-    A ser implementado na T2.
+    O valor deve ser um ``int`` positivo expresso em centavos. Floats são
+    sempre rejeitados para evitar arredondamentos; ``bool`` também é rejeitado,
+    embora seja uma subclasse de ``int`` em Python.
     """
-    raise NotImplementedError("Implementar em T2")
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValidationError("O valor deve ser um inteiro em centavos")
+
+    if value <= 0:
+        raise ValidationError("O valor deve ser maior que zero")
+
+    return value
