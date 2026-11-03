@@ -7,5 +7,17 @@ Regras da casa:
 
 
 def mask_pan(pan):
-    """Mascara o PAN, mantendo no máximo os 4 últimos dígitos. A ser implementado na T8."""
-    raise NotImplementedError("Implementar em T8")
+    """Retorna somente os quatro últimos dígitos do PAN sem máscara.
+
+    O resultado pode ser incluído em logs sem expor o número completo do
+    cartão. Espaços e separadores são removidos antes da máscara.
+    """
+    if isinstance(pan, bool) or not isinstance(pan, (str, int)):
+        raise TypeError("O PAN deve ser informado como texto ou inteiro")
+
+    digits = "".join(character for character in str(pan) if character in "0123456789")
+    if not digits:
+        raise ValueError("O PAN deve conter ao menos um dígito")
+
+    visible_digits = digits[-4:]
+    return "*" * (len(digits) - len(visible_digits)) + visible_digits
