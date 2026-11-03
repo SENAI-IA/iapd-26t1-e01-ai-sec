@@ -4,6 +4,7 @@ Regras da casa:
 - Toda consulta SQL usa parâmetros (``?``), nunca concatenação ou f-string.
 """
 
+from pathlib import Path
 import sqlite3
 
 SCHEMA = """
@@ -35,11 +36,38 @@ CREATE TABLE IF NOT EXISTS balances (
 """
 
 
-def connect(path):
-    """Abre uma conexão sqlite3. A ser completado na T3."""
-    raise NotImplementedError("Implementar em T3")
+def connect(path: str | Path) -> sqlite3.Connection:
+    """Abre uma conexão SQLite configurada para o banco da aplicação."""
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
-def init_schema(conn):
-    """Cria as tabelas. A ser completado na T3."""
-    raise NotImplementedError("Implementar em T3")
+def init_schema(conn: sqlite3.Connection) -> None:
+    """Cria as tabelas da aplicação caso ainda não existam."""
+    conn.executescript(SCHEMA)
+    conn.commit()
+
+
+def execute(
+    conn: sqlite3.Connection, sql: str, params: tuple = ()
+) -> sqlite3.Cursor:
+    """Executa uma consulta com parâmetros e confirma a transação."""
+    cursor = conn.execute(sql, params)
+    conn.commit()
+    return cursor
+
+
+def fetch_one(
+    conn: sqlite3.Connection, sql: str, params: tuple = ()
+) -> sqlite3.Row | None:
+    """Busca uma linha usando uma consulta parametrizada."""
+    return conn.execute(sql, params).fetchone()
+
+
+def fetch_all(
+    conn: sqlite3.Connection, sql: str, params: tuple = ()
+) -> list[sqlite3.Row]:
+    """Busca várias linhas usando uma consulta parametrizada."""
+    return conn.execute(sql, params).fetchall()
