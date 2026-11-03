@@ -10,6 +10,6 @@ Ordem sugerida. Cada task é pequena o bastante para o agente executar e você c
 - [x] T6. `ledger.py` extrato paginado + teste R11.
 - [x] T7. `ledger.py` débito com transação + teste R12 (threads).
 - [x] T8. `logging_.py` + teste R10 (capturar log e garantir que o PAN não aparece).
-- [ ] T9. Revisar o README: como rodar, regras da casa, o que ficou fora.
+- [x] T9. Revisar o README: como rodar, regras da casa, o que ficou fora.
 
 Entrega: repositório `iapd-26t3-eNN-pagamentos` na org SENAI-IA, com `pytest -q` verde e os 12 testes `test_r..`.

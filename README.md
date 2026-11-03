@@ -1,58 +1,58 @@
 # pagamentos-api
 
-API de pagamentos de brinquedo da Semana 3 (turma IAPD-26T1-E01). Registra pagamentos, faz reembolsos total/parcial, recebe webhooks idempotentes e gera extrato paginado. Sem dinheiro real, sem rede: tudo local, em Python puro, com SQLite em arquivo.
+API de pagamentos de brinquedo da turma IAPD-26T1-E01. O projeto usa Python e SQLite em arquivo; não movimenta dinheiro real nem se conecta a provedores.
 
-## Stack
+## Funcionalidades
 
-- Python 3.10+
-- Somente biblioteca padrão (`sqlite3`, `hmac`, `datetime`, ...)
-- `pytest` apenas para os testes
+- Criar pagamentos aprovados com valores inteiros em centavos.
+- Fazer reembolsos parciais ou totais, sem exceder o valor pago.
+- Consultar extrato cronológico paginado de pagamentos e reembolsos.
+- Debitar saldos com transação SQLite para serializar operações concorrentes.
+- Mascarar PAN antes de incluí-lo em logs.
 
-Não há framework web: a "API" é um conjunto de funções puras em `app/`, chamadas diretamente pelos testes. Expor em HTTP é opcional e está fora do critério de pronto.
+O recebimento e a verificação de webhooks ainda estão pendentes na T5; `app/webhooks.py` permanece como stub.
 
-## Estrutura
+## Stack e estrutura
 
-```
+- Python 3.10 ou superior e biblioteca padrão na aplicação (`sqlite3`, `datetime`, `hmac` etc.).
+- `pytest` como dependência de desenvolvimento.
+- Sem framework web: as operações são funções Python em `app/`, chamadas diretamente pelo código e pelos testes.
+
+```text
 app/
-├── api.py        fachada: ponto único de entrada
-├── money.py      parse e validação de valores em centavos (R01, R02)
+├── api.py        funções da aplicação reexportadas como fachada
+├── money.py      validação de valores em centavos (R01, R02)
 ├── db.py         conexão, schema e consultas parametrizadas (R09)
-├── payments.py   criar e consultar pagamento (R03)
-├── refunds.py    reembolso total e parcial (R04, R05)
-├── webhooks.py   verificação de assinatura e idempotência (R06, R07, R08)
-├── ledger.py     extrato paginado (R11) e débito com transação (R12)
-├── logging_.py   log sem dados sensíveis (R10)
-└── errors.py     exceções de domínio (ValidationError, RefundError, AuthError)
-tests/            um test_rNN_*.py por requisito
+├── payments.py   criação e consulta de pagamentos (R03)
+├── refunds.py    reembolsos totais e parciais (R04, R05)
+├── webhooks.py   stub; implementação planejada na T5 (R06–R08)
+├── ledger.py     extrato paginado e débito transacional (R11, R12)
+├── logging_.py   máscara do PAN para logs (R10)
+└── errors.py     exceções de domínio
+tests/            testes dos requisitos implementados
 ```
 
-## Como rodar
+## Como instalar e rodar
 
 Pré-requisito: Python 3.10 ou superior.
 
 ```bash
-# 1. (opcional) criar e ativar um ambiente virtual
 python -m venv .venv
 source .venv/bin/activate
-
-# 2. instalar a dependência de desenvolvimento (pytest)
 pip install -r requirements-dev.txt
-
-# 3. rodar a suíte
 python -m pytest -q
 ```
 
-A aplicação em si não tem dependências externas; o `requirements-dev.txt` traz apenas o `pytest`.
+A aplicação não precisa instalar dependências externas. No Windows, ative o ambiente com `.venv\Scripts\activate`.
 
 ## Testes
 
-- Banco temporário por teste (`tmp_path`), sem estado compartilhado.
-- Cada requisito (R01 a R12) tem pelo menos um teste nomeado `test_rNN_...`, por exemplo `test_r04_reembolso_maior_que_pago_rejeita`.
+Os testes usam bancos SQLite temporários, criados por teste. A cobertura atual inclui validação de valores (R01/R02), pagamentos e reembolsos (R03–R05), SQL parametrizado (R09), logs (R10), extrato (R11) e débito concorrente (R12). R06–R08 dependem da implementação de webhooks na T5.
 
-## Regras da casa
+## Regras do projeto
 
-As convenções da equipe (centavos, SQL parametrizado, UTC, `compare_digest`, PAN nunca em log) estão em [`AGENTS.md`](./AGENTS.md).
+Os valores são inteiros em centavos; as consultas SQL usam parâmetros; os timestamps incluem fuso UTC; tokens e assinaturas devem ser comparados com `hmac.compare_digest`; dados sensíveis não podem aparecer em logs. As convenções completas estão em [`AGENTS.md`](./AGENTS.md).
 
 ## Fora de escopo
 
-Interface web, autenticação de usuário, múltiplas moedas com conversão, rede real com o provedor de pagamento.
+Interface web ou API HTTP, autenticação de usuários, conversão entre moedas e conexão real com provedores de pagamento. Webhooks assinados ainda não estão implementados.
