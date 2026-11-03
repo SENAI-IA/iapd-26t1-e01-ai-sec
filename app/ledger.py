@@ -4,6 +4,7 @@ import sqlite3
 
 from app.db import fetch_all
 from app.errors import ValidationError
+from app.money import parse_amount_cents
 
 
 def _validate_pagination(page: int, page_size: int) -> None:
@@ -71,6 +72,37 @@ def statement(
     return [dict(row) for row in rows]
 
 
-def debit(conn, customer_id, amount_cents):
-    """Débito com transação BEGIN IMMEDIATE. A ser implementado na T7."""
-    raise NotImplementedError("Implementar em T7")
+def debit(
+    conn: sqlite3.Connection, customer_id: str, amount_cents: int
+) -> int:
+    """Debita centavos do saldo e retorna o saldo restante.
+
+    ``BEGIN IMMEDIATE`` serializa a leitura e a atualização entre conexões.
+    Um cliente sem saldo cadastrado ou sem fundos suficientes recebe
+    ``ValueError``; a transação é desfeita sem alterar o saldo.
+    """
+    amount_cents = parse_amount_cents(amount_cents)
+
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        row = conn.execute(
+            "SELECT balance_cents FROM balances WHERE customer_id = ?",
+            (customer_id,),
+        ).fetchone()
+        if row is None:
+            raise ValueError("Saldo do cliente não encontrado")
+
+        balance_cents = row["balance_cents"]
+        if balance_cents < amount_cents:
+            raise ValueError("Saldo insuficiente")
+
+        remaining_cents = balance_cents - amount_cents
+        conn.execute(
+            "UPDATE balances SET balance_cents = ? WHERE customer_id = ?",
+            (remaining_cents, customer_id),
+        )
+        conn.commit()
+        return remaining_cents
+    except Exception:
+        conn.rollback()
+        raise
