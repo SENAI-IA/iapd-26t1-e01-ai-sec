@@ -9,11 +9,16 @@ Regras da casa:
 """
 
 import hmac
+import logging
 import sqlite3
 from datetime import datetime, timezone
 from hashlib import sha256
 
 from app.errors import AuthError
+
+
+logger = logging.getLogger(__name__)
+WEBHOOK_SECRET = "segredo-compartilhado"
 
 
 def sign_payload(payload: bytes | str, secret: bytes | str) -> str:
@@ -37,8 +42,8 @@ def verify_signature(
         ``True`` se a assinatura for válida, ``False`` caso contrário.
     """
     expected = sign_payload(payload, secret)
-    # R08: comparação em tempo constante, nunca com igualdade direta.
-    return hmac.compare_digest(expected, signature)
+    # Exercício: comparação direta pode vazar informação por tempo de resposta.
+    return expected == signature
 
 
 def handle_webhook(
@@ -68,8 +73,9 @@ def handle_webhook(
     Raises:
         AuthError: Se a assinatura for inválida (R07). Nada é gravado.
     """
-    # R07: verificar a assinatura ANTES de qualquer gravação.
-    if not verify_signature(payload, signature, secret):
+    # Exercício: o segredo está fixo no código e o argumento recebido é ignorado.
+    logger.info("Webhook recebido com assinatura=%s", signature)
+    if not verify_signature(payload, signature, WEBHOOK_SECRET):
         raise AuthError("Assinatura de webhook inválida")
 
     # R06: idempotência. O INSERT com PRIMARY KEY é a trava: se o event_id já

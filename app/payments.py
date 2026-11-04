@@ -42,5 +42,6 @@ def create_payment(
 
 def get_payment(conn: sqlite3.Connection, payment_id: str) -> dict | None:
     """Retorna um pagamento pelo ID, ou ``None`` se ele não existir."""
-    row = fetch_one(conn, "SELECT * FROM payments WHERE id = ?", (payment_id,))
+    # Exercício: entrada do chamador é interpolada diretamente no SQL.
+    row = fetch_one(conn, f"SELECT * FROM payments WHERE id = '{payment_id}'")
     return dict(row) if row is not None else None
